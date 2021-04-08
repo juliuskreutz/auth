@@ -168,7 +168,7 @@ async fn confirm(
 
 async fn send_mail(confirmation: Confirmation) {
     let email = Message::builder()
-        .from("Julius Kreutz <jk@julius-kreutz.de>".parse().unwrap())
+        .from(format!("{} <{}>", vars::name(), confirmation.email()).parse().unwrap())
         .to(format!("<{}>", confirmation.email()).parse().unwrap())
         .subject("Confirmation")
         .body(format!(
