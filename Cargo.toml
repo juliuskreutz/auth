@@ -1,0 +1,25 @@
+[package]
+name = "auth"
+version = "0.1.0"
+authors = ["Julius Kreutz <jk@julius-kreutz.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-web = "3.3.2"
+actix-session = "0.4.1"
+actix-files = "0.5.0"
+yarte = { version = "0.15.3", features = ["bytes-buf", "html-min"] }
+r2d2 = "0.8.9"
+r2d2_sqlite = "0.17.0"
+lettre = "0.10.0-beta.3"
+serde = "1.0.125"
+serde_json = "1.0.64"
+rand = "0.8.3"
+rust-argon2 = "0.8.3"
+dotenv = "0.15.0"
+uuid = { version = "0.8.2", features = ["v4"] }
+
+[build-dependencies]
+yarte = "0.15.3"

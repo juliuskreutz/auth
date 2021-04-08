@@ -1,0 +1,43 @@
+:root {
+    --white-background: #F8F8FF
+}
+
+* {
+    margin: 10px 10px;
+}
+
+html, body {
+    height: 100%;
+    background-color: var(--white-background);
+}
+
+header {
+    font-size: 5rem;
+    font-weight: bold;
+}
+
+p {
+    font-size: 3rem;
+}
+
+.form {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    padding: 10rem 20rem;
+}
+
+.form input {
+    height: 25px;
+}
+
+.button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
