@@ -14,8 +14,6 @@ mod auth;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     
-    println!("{}", config::name());
-
     let manager = SqliteConnectionManager::file(config::database());
     let pool = Pool::new(manager).expect("Couldn't create database pool");
 

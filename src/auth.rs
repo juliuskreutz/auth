@@ -181,7 +181,7 @@ async fn confirm(
 async fn send_mail(confirmation: Confirmation) {
     let email = Message::builder()
         .from(
-            format!("{} <{}>", config::name(), confirmation.email())
+            format!("{} <{}>", config::name(), config::smtp_email())
                 .parse()
                 .unwrap(),
         )

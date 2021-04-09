@@ -30,6 +30,13 @@ pub fn database() -> String {
     }
 }
 
+pub fn smtp_email() -> String {
+    match get("smtp-email") {
+        Value::String(email) => email,
+        _ => panic!("smtp-email not configured")
+    }
+}
+
 pub fn smtp_username() -> String {
     match get("smtp-username") {
         Value::String(username) => username,
