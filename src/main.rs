@@ -1,19 +1,26 @@
 use actix_session::CookieSession;
 use actix_web::{App, HttpServer};
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use rand::Rng;
 
+mod config;
 mod database;
 mod models;
 mod templates;
-mod config;
 
 mod auth;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    
+    let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+
+    builder
+        .set_private_key_file("key.pem", SslFiletype::PEM)
+        .unwrap();
+    builder.set_certificate_chain_file("cert.pem").unwrap();
+
     let manager = SqliteConnectionManager::file(config::database());
     let pool = Pool::new(manager).expect("Couldn't create database pool");
 
@@ -37,7 +44,7 @@ async fn main() -> std::io::Result<()> {
             .configure(auth::config)
             .service(actix_files::Files::new("/static", "static"))
     })
-    .bind(format!("{}:{}", config::domain(), config::port()))?
+    .bind_openssl(format!("{}:{}", config::local_domain(), config::port()), builder)?
     .run()
     .await
 }

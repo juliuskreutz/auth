@@ -1,5 +1,6 @@
 target/
 
+*.pem
 config.json
 Cargo.lock
 *.sqlite

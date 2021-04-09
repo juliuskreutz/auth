@@ -15,7 +15,7 @@ use yarte::{auto, ywrite_min, Template};
 
 use crate::models::{Confirmation, User};
 use crate::templates::HomeTemplate;
-use crate::{database, config};
+use crate::{config, database};
 
 type DBPool = Pool<SqliteConnectionManager>;
 
@@ -121,23 +121,26 @@ async fn register_post(
 
     let uuid = Uuid::new_v4().to_simple().to_string();
 
-    let confirmation =
-        Confirmation::new(uuid.clone(), user.email().clone(), user.password().clone());
+    if let Some(password) = encode(&user.password().clone()) {
+        let confirmation = Confirmation::new(uuid.clone(), user.email().clone(), password);
 
-    let confirmation_mail = confirmation.clone();
+        let confirmation_mail = confirmation.clone();
 
-    web::block(move || database::add_confirmation(&conn, &confirmation))
-        .await
-        .expect("Database error while adding confirmation");
+        web::block(move || database::add_confirmation(&conn, &confirmation))
+            .await
+            .expect("Database error while adding confirmation");
 
-    spawn(send_mail(confirmation_mail));
-    spawn(delete_confirmation_delayed(
-        pool.get().expect("Couldn't get connection from pool"),
-        uuid,
-        900,
-    ));
+        spawn(send_mail(confirmation_mail));
+        spawn(delete_confirmation_delayed(
+            pool.get().expect("Couldn't get connection from pool"),
+            uuid,
+            900,
+        ));
 
-    Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> mail }}"))))
+        return Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> mail }}"))));
+    }
+
+    Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> invalid }}"))))
 }
 
 #[get("/confirm/{uuid}")]
@@ -162,17 +165,18 @@ async fn confirm(
 
         let conn = pool.get().expect("Couldn't get connection from pool");
 
-        if let Some(password) = encode(confirmation.password()) {
-            let user = User::new(confirmation.email().clone(), password);
-            let user_clone = user.clone();
+        let user = User::new(
+            confirmation.email().clone(),
+            confirmation.password().clone(),
+        );
+        let user_clone = user.clone();
 
-            web::block(move || database::add_user(&conn, &user_clone))
-                .await
-                .expect("Database error while getting confirmation");
+        web::block(move || database::add_user(&conn, &user_clone))
+            .await
+            .expect("Database error while getting confirmation");
 
-            session.set("auth", serde_json::to_string(&user).unwrap())?;
-            return Ok(HttpResponse::Found().header("LOCATION", "/").finish());
-        }
+        session.set("auth", serde_json::to_string(&user).unwrap())?;
+        return Ok(HttpResponse::Found().header("LOCATION", "/").finish());
     }
 
     Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> invalid }}"))))
@@ -188,8 +192,8 @@ async fn send_mail(confirmation: Confirmation) {
         .to(format!("<{}>", confirmation.email()).parse().unwrap())
         .subject("Confirmation")
         .body(format!(
-            "http://{}:{}/confirm/{}",
-            config::domain(),
+            "https://{}:{}/confirm/{}",
+            config::global_domain(),
             config::port(),
             confirmation.uuid()
         ))
