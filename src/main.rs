@@ -1,11 +1,12 @@
-use std::{fs::File, io::BufReader};
-
 use actix_session::CookieSession;
 use actix_web::{App, HttpServer};
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use rand::Rng;
-use rustls::{NoClientAuth, ServerConfig, internal::pemfile::{certs, pkcs8_private_keys}};
+use rustls::{
+    internal::pemfile::{certs, pkcs8_private_keys},
+    NoClientAuth, ServerConfig,
+};
 
 mod config;
 mod database;
@@ -16,7 +17,6 @@ mod auth;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-
     let manager = SqliteConnectionManager::file(config::database());
     let pool = Pool::new(manager).expect("Couldn't create database pool");
 
@@ -42,12 +42,17 @@ async fn main() -> std::io::Result<()> {
             .configure(auth::config)
             .service(actix_files::Files::new("/static", "static"))
     })
-    .bind_rustls(format!("{}:{}", config::local_domain(), config::port()), config)?
+    .bind_rustls(
+        format!("{}:{}", config::local_domain(), config::port()),
+        config,
+    )?
     .run()
     .await
 }
 
 fn load_ssl() -> ServerConfig {
+    use std::{fs::File, io::BufReader};
+
     let mut config = ServerConfig::new(NoClientAuth::new());
     let cert_file = &mut BufReader::new(File::open("cert.pem").unwrap());
     let key_file = &mut BufReader::new(File::open("key.pem").unwrap());
@@ -56,4 +61,4 @@ fn load_ssl() -> ServerConfig {
     config.set_single_cert(cert_chain, keys.remove(0)).unwrap();
 
     config
- }
+}
