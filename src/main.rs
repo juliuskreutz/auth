@@ -7,13 +7,16 @@ use rand::Rng;
 mod database;
 mod models;
 mod templates;
-mod vars;
+mod config;
 
 mod auth;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let manager = SqliteConnectionManager::file(vars::database());
+    
+    println!("{}", config::name());
+
+    let manager = SqliteConnectionManager::file(config::database());
     let pool = Pool::new(manager).expect("Couldn't create database pool");
 
     database::init(
@@ -36,7 +39,7 @@ async fn main() -> std::io::Result<()> {
             .configure(auth::config)
             .service(actix_files::Files::new("/static", "static"))
     })
-    .bind(format!("{}:{}", vars::domain(), vars::port()))?
+    .bind(format!("{}:{}", config::domain(), config::port()))?
     .run()
     .await
 }

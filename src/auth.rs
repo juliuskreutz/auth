@@ -15,7 +15,7 @@ use yarte::{auto, ywrite_min, Template};
 
 use crate::models::{Confirmation, User};
 use crate::templates::HomeTemplate;
-use crate::{database, vars};
+use crate::{database, config};
 
 type DBPool = Pool<SqliteConnectionManager>;
 
@@ -181,7 +181,7 @@ async fn confirm(
 async fn send_mail(confirmation: Confirmation) {
     let email = Message::builder()
         .from(
-            format!("{} <{}>", vars::name(), confirmation.email())
+            format!("{} <{}>", config::name(), confirmation.email())
                 .parse()
                 .unwrap(),
         )
@@ -189,15 +189,15 @@ async fn send_mail(confirmation: Confirmation) {
         .subject("Confirmation")
         .body(format!(
             "http://{}:{}/confirm/{}",
-            vars::domain(),
-            vars::port(),
+            config::domain(),
+            config::port(),
             confirmation.uuid()
         ))
         .unwrap();
 
-    let creds = Credentials::new(vars::smtp_username(), vars::smtp_password());
+    let creds = Credentials::new(config::smtp_username(), config::smtp_password());
 
-    let mailer = SmtpTransport::relay(&vars::smtp_host())
+    let mailer = SmtpTransport::relay(&config::smtp_host())
         .unwrap()
         .credentials(creds)
         .build();
@@ -216,7 +216,7 @@ async fn delete_confirmation_delayed(conn: database::Conn, uuid: String, seconds
 fn encode(password: &String) -> Option<String> {
     match argon2::hash_encoded(
         password.as_bytes(),
-        vars::salt().as_bytes(),
+        config::salt().as_bytes(),
         &Config::default(),
     ) {
         Ok(hash) => Some(hash),

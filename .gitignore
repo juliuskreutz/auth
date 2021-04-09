@@ -1,5 +1,5 @@
 target/
 
-.env
+config.json
 Cargo.lock
 *.sqlite
