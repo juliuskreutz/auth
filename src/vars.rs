@@ -5,9 +5,9 @@ use std::env::var;
 pub fn name() -> String {
     dotenv().ok();
 
-    var("DOMAIN").expect("Please tell me your name ;)")
+    var("NAME").expect("Please tell me your name ;)")
 }
- 
+
 pub fn domain() -> String {
     dotenv().ok();
 

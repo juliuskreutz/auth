@@ -1,5 +1,11 @@
+use std::time::Duration;
+
 use actix_session::Session;
-use actix_web::{get, post, rt::spawn, web, Error, HttpResponse};
+use actix_web::{
+    get, post,
+    rt::{spawn, time::delay_for},
+    web, Error, HttpResponse,
+};
 use argon2::Config;
 use lettre::{transport::smtp::authentication::Credentials, Message, SmtpTransport, Transport};
 use r2d2::Pool;
@@ -115,7 +121,8 @@ async fn register_post(
 
     let uuid = Uuid::new_v4().to_simple().to_string();
 
-    let confirmation = Confirmation::new(uuid, user.email().clone(), user.password().clone());
+    let confirmation =
+        Confirmation::new(uuid.clone(), user.email().clone(), user.password().clone());
 
     let confirmation_mail = confirmation.clone();
 
@@ -124,6 +131,11 @@ async fn register_post(
         .expect("Database error while adding confirmation");
 
     spawn(send_mail(confirmation_mail));
+    spawn(delete_confirmation_delayed(
+        pool.get().expect("Couldn't get connection from pool"),
+        uuid,
+        900,
+    ));
 
     Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> mail }}"))))
 }
@@ -168,7 +180,11 @@ async fn confirm(
 
 async fn send_mail(confirmation: Confirmation) {
     let email = Message::builder()
-        .from(format!("{} <{}>", vars::name(), confirmation.email()).parse().unwrap())
+        .from(
+            format!("{} <{}>", vars::name(), confirmation.email())
+                .parse()
+                .unwrap(),
+        )
         .to(format!("<{}>", confirmation.email()).parse().unwrap())
         .subject("Confirmation")
         .body(format!(
@@ -190,6 +206,11 @@ async fn send_mail(confirmation: Confirmation) {
         Ok(_) => println!("Email sent successfully!"),
         Err(e) => panic!("Could not send email: {:?}", e),
     }
+}
+
+async fn delete_confirmation_delayed(conn: database::Conn, uuid: String, seconds: u64) {
+    delay_for(Duration::from_secs(seconds)).await;
+    database::delete_confirmation(&conn, &uuid).expect("Delete went wrong :thinking:");
 }
 
 fn encode(password: &String) -> Option<String> {

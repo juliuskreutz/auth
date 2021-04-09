@@ -6,7 +6,7 @@ use r2d2_sqlite::{
 
 use crate::models::{Confirmation, User};
 
-type Conn = PooledConnection<SqliteConnectionManager>;
+pub type Conn = PooledConnection<SqliteConnectionManager>;
 
 pub fn init(conn: &Conn) -> Result<()> {
     conn.execute(
