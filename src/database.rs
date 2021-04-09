@@ -1,6 +1,6 @@
 use r2d2::PooledConnection;
 use r2d2_sqlite::{
-    rusqlite::{named_params, params, Result, NO_PARAMS},
+    rusqlite::{params, Result, NO_PARAMS},
     SqliteConnectionManager,
 };
 
@@ -41,9 +41,9 @@ pub fn add_user(conn: &Conn, user: &User) -> Result<()> {
 }
 
 pub fn get_user(conn: &Conn, email: &String) -> Result<Option<User>> {
-    let mut stmt = conn.prepare_cached("SELECT email, password FROM users WHERE email = :email")?;
+    let mut stmt = conn.prepare_cached("SELECT email, password FROM users WHERE email = ?1")?;
 
-    let mut rows = stmt.query_map_named(named_params! {":email": email}, |row| {
+    let mut rows = stmt.query_map(params! {email}, |row| {
         Ok(User::new(row.get(0)?, row.get(1)?))
     })?;
 
@@ -70,9 +70,9 @@ pub fn add_confirmation(conn: &Conn, confirmation: &Confirmation) -> Result<()> 
 
 pub fn get_confirmation(conn: &Conn, uuid: &String) -> Result<Option<Confirmation>> {
     let mut stmt =
-        conn.prepare_cached("SELECT uuid, email, password FROM confirmations WHERE uuid = :uuid")?;
+        conn.prepare_cached("SELECT uuid, email, password FROM confirmations WHERE uuid = ?1")?;
 
-    let mut rows = stmt.query_map_named(named_params! {":uuid": uuid}, |row| {
+    let mut rows = stmt.query_map(params! {uuid}, |row| {
         Ok(Confirmation::new(row.get(0)?, row.get(1)?, row.get(2)?))
     })?;
 
@@ -84,9 +84,9 @@ pub fn get_confirmation(conn: &Conn, uuid: &String) -> Result<Option<Confirmatio
 }
 
 pub fn delete_confirmation(conn: &Conn, uuid: &String) -> Result<()> {
-    let mut stmt = conn.prepare_cached("DELETE FROM confirmations WHERE uuid = :uuid")?;
+    let mut stmt = conn.prepare_cached("DELETE FROM confirmations WHERE uuid = ?1")?;
 
-    stmt.execute_named(named_params! {":uuid": uuid})?;
+    stmt.execute(params! {uuid})?;
 
     Ok(())
 }
