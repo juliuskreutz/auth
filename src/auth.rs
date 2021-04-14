@@ -117,20 +117,12 @@ async fn register_post(
     pool: web::Data<DBPool>,
     user: web::Form<User>,
 ) -> Result<HttpResponse, Error> {
-    let conn = pool.get().expect("Couldn't get connection from pool");
-
     let uuid = Uuid::new_v4().to_simple().to_string();
 
     if let Some(password) = encode(&user.password().clone()) {
         let confirmation = Confirmation::new(uuid.clone(), user.email().clone(), password);
 
-        let confirmation_mail = confirmation.clone();
-
-        web::block(move || database::add_confirmation(&conn, &confirmation))
-            .await
-            .expect("Database error while adding confirmation");
-
-        spawn(send_mail(confirmation_mail));
+        spawn(send_mail(confirmation, pool.get().expect("msg")));
         spawn(delete_confirmation_delayed(
             pool.get().expect("Couldn't get connection from pool"),
             uuid,
@@ -182,7 +174,7 @@ async fn confirm(
     Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> invalid }}"))))
 }
 
-async fn send_mail(confirmation: Confirmation) {
+async fn send_mail(confirmation: Confirmation, conn: database::Conn) {
     let to = format!("<{}>", confirmation.email()).parse();
 
     if let Ok(to) = to {
@@ -210,7 +202,11 @@ async fn send_mail(confirmation: Confirmation) {
             .build();
 
         match mailer.send(&email) {
-            Ok(_) => println!("Email sent successfully!"),
+            Ok(_) => {
+                web::block(move || database::add_confirmation(&conn, &confirmation))
+                    .await
+                    .expect("Database error while adding confirmation");
+            }
             Err(e) => panic!("Could not send email: {:?}", e),
         }
     }
