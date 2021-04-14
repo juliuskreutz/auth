@@ -126,7 +126,7 @@ async fn register_post(
         spawn(delete_confirmation_delayed(
             pool.get().expect("Couldn't get connection from pool"),
             uuid,
-            10,
+            300,
         ));
 
         return Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> mail }}"))));
