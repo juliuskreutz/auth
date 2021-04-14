@@ -126,7 +126,7 @@ async fn register_post(
         spawn(delete_confirmation_delayed(
             pool.get().expect("Couldn't get connection from pool"),
             uuid,
-            900,
+            10,
         ));
 
         return Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> mail }}"))));
@@ -218,12 +218,10 @@ async fn delete_confirmation_delayed(conn: database::Conn, uuid: String, seconds
 }
 
 fn encode(password: &String) -> Option<String> {
-    match argon2::hash_encoded(
+    argon2::hash_encoded(
         password.as_bytes(),
         config::salt().as_bytes(),
         &Config::default(),
-    ) {
-        Ok(hash) => Some(hash),
-        Err(_) => None,
-    }
+    )
+    .map_or_else(|_| None, |s| Some(s))
 }
