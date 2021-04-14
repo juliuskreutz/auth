@@ -183,32 +183,36 @@ async fn confirm(
 }
 
 async fn send_mail(confirmation: Confirmation) {
-    let email = Message::builder()
-        .from(
-            format!("{} <{}>", config::name(), config::smtp_email())
-                .parse()
-                .unwrap(),
-        )
-        .to(format!("<{}>", confirmation.email()).parse().unwrap())
-        .subject("Confirmation")
-        .body(format!(
-            "https://{}:{}/confirm/{}",
-            config::global_domain(),
-            config::port(),
-            confirmation.uuid()
-        ))
-        .unwrap();
+    let to = format!("<{}>", confirmation.email()).parse();
 
-    let creds = Credentials::new(config::smtp_username(), config::smtp_password());
+    if let Ok(to) = to {
+        let email = Message::builder()
+            .from(
+                format!("{} <{}>", config::name(), config::smtp_email())
+                    .parse()
+                    .unwrap(),
+            )
+            .to(to)
+            .subject("Confirmation")
+            .body(format!(
+                "https://{}:{}/confirm/{}",
+                config::global_domain(),
+                config::port(),
+                confirmation.uuid()
+            ))
+            .unwrap();
 
-    let mailer = SmtpTransport::relay(&config::smtp_host())
-        .unwrap()
-        .credentials(creds)
-        .build();
+        let creds = Credentials::new(config::smtp_username(), config::smtp_password());
 
-    match mailer.send(&email) {
-        Ok(_) => println!("Email sent successfully!"),
-        Err(e) => panic!("Could not send email: {:?}", e),
+        let mailer = SmtpTransport::relay(&config::smtp_host())
+            .unwrap()
+            .credentials(creds)
+            .build();
+
+        match mailer.send(&email) {
+            Ok(_) => println!("Email sent successfully!"),
+            Err(e) => panic!("Could not send email: {:?}", e),
+        }
     }
 }
 
