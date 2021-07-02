@@ -217,11 +217,11 @@ async fn delete_confirmation_delayed(conn: database::Conn, uuid: String, seconds
     database::delete_confirmation(&conn, &uuid).expect("Delete went wrong :thinking:");
 }
 
-fn encode(password: &String) -> Option<String> {
+fn encode(password: &str) -> Option<String> {
     argon2::hash_encoded(
         password.as_bytes(),
         config::salt().as_bytes(),
         &Config::default(),
     )
-    .map_or_else(|_| None, |s| Some(s))
+    .map_or_else(|_| None, Some)
 }

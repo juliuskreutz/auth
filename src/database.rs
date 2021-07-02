@@ -40,7 +40,7 @@ pub fn add_user(conn: &Conn, user: &User) -> Result<()> {
     Ok(())
 }
 
-pub fn get_user(conn: &Conn, email: &String) -> Result<Option<User>> {
+pub fn get_user(conn: &Conn, email: &str) -> Result<Option<User>> {
     let mut stmt = conn.prepare_cached("SELECT email, password FROM users WHERE email = ?1")?;
 
     let mut rows = stmt.query_map(params! {email}, |row| {
@@ -68,7 +68,7 @@ pub fn add_confirmation(conn: &Conn, confirmation: &Confirmation) -> Result<()> 
     Ok(())
 }
 
-pub fn get_confirmation(conn: &Conn, uuid: &String) -> Result<Option<Confirmation>> {
+pub fn get_confirmation(conn: &Conn, uuid: &str) -> Result<Option<Confirmation>> {
     let mut stmt =
         conn.prepare_cached("SELECT uuid, email, password FROM confirmations WHERE uuid = ?1")?;
 
@@ -83,7 +83,7 @@ pub fn get_confirmation(conn: &Conn, uuid: &String) -> Result<Option<Confirmatio
     Ok(None)
 }
 
-pub fn delete_confirmation(conn: &Conn, uuid: &String) -> Result<()> {
+pub fn delete_confirmation(conn: &Conn, uuid: &str) -> Result<()> {
     let mut stmt = conn.prepare_cached("DELETE FROM confirmations WHERE uuid = ?1")?;
 
     stmt.execute(params! {uuid})?;
