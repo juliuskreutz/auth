@@ -11,7 +11,7 @@ use lettre::{transport::smtp::authentication::Credentials, Message, SmtpTranspor
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use uuid::Uuid;
-use yarte::{auto, ywrite_min, Template};
+use yarte::{auto, ywrite_html, Template};
 
 use crate::models::{Confirmation, User};
 use crate::templates::HomeTemplate;
@@ -57,12 +57,12 @@ async fn login(session: Session) -> Result<HttpResponse, Error> {
                 return Ok(HttpResponse::Found().header("LOCATION", "/").finish());
             }
             Err(_) => {
-                return Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> invalid }}"))));
+                return Ok(HttpResponse::Ok().body(auto!(ywrite_html!(String, "{{> login }}"))));
             }
         }
     }
 
-    Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> login }}"))))
+    Ok(HttpResponse::Ok().body(auto!(ywrite_html!(String, "{{> login }}"))))
 }
 
 #[post("/login")]
@@ -86,7 +86,7 @@ async fn login_post(
         }
     }
 
-    Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> invalid }}"))))
+    Ok(HttpResponse::Ok().body(auto!(ywrite_html!(String, "{{> invalid }}"))))
 }
 
 #[post("/logout")]
@@ -104,12 +104,12 @@ async fn register(session: Session) -> Result<HttpResponse, Error> {
                 return Ok(HttpResponse::Found().header("LOCATION", "/").finish());
             }
             Err(_) => {
-                return Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> invalid }}"))));
+                return Ok(HttpResponse::Ok().body(auto!(ywrite_html!(String, "{{> invalid }}"))));
             }
         }
     }
 
-    Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> register }}"))))
+    Ok(HttpResponse::Ok().body(auto!(ywrite_html!(String, "{{> register }}"))))
 }
 
 #[post("/register")]
@@ -129,10 +129,10 @@ async fn register_post(
             300,
         ));
 
-        return Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> mail }}"))));
+        return Ok(HttpResponse::Ok().body(auto!(ywrite_html!(String, "{{> mail }}"))));
     }
 
-    Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> invalid }}"))))
+    Ok(HttpResponse::Ok().body(auto!(ywrite_html!(String, "{{> invalid }}"))))
 }
 
 #[get("/confirm/{uuid}")]
@@ -171,7 +171,7 @@ async fn confirm(
         return Ok(HttpResponse::Found().header("LOCATION", "/").finish());
     }
 
-    Ok(HttpResponse::Ok().body(auto!(ywrite_min!(String, "{{> invalid }}"))))
+    Ok(HttpResponse::Ok().body(auto!(ywrite_html!(String, "{{> invalid }}"))))
 }
 
 async fn send_mail(confirmation: Confirmation, conn: database::Conn) {

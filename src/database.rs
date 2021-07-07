@@ -1,6 +1,6 @@
 use r2d2::PooledConnection;
 use r2d2_sqlite::{
-    rusqlite::{params, Result, NO_PARAMS},
+    rusqlite::{params, Result},
     SqliteConnectionManager,
 };
 
@@ -15,7 +15,7 @@ pub fn init(conn: &Conn) -> Result<()> {
         email STRING PRIMARY KEY,
         password STRING
     )",
-        NO_PARAMS,
+        [],
     )?;
 
     conn.execute(
@@ -25,7 +25,7 @@ pub fn init(conn: &Conn) -> Result<()> {
         email STRING,
         password STRING
     )",
-        NO_PARAMS,
+        [],
     )?;
 
     Ok(())
