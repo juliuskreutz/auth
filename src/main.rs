@@ -27,8 +27,6 @@ async fn main() -> std::io::Result<()> {
     )
     .expect("Couldn't initialize database");
 
-    //let secret_key = rand::thread_rng().gen::<[u8; 32]>();
-
     let config = load_ssl();
 
     HttpServer::new(move || {
@@ -37,7 +35,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 CookieSession::private(&rand::thread_rng().gen::<[u8; 32]>())
                     .name("auth")
-                    .secure(false),
+                    .secure(true),
             )
             .configure(auth::config)
             .service(actix_files::Files::new("/static", "static"))
