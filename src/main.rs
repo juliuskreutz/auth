@@ -27,7 +27,7 @@ async fn main() -> std::io::Result<()> {
     )
     .expect("Couldn't initialize database");
 
-    let secret_key = rand::thread_rng().gen::<[u8; 32]>();
+    //let secret_key = rand::thread_rng().gen::<[u8; 32]>();
 
     let config = load_ssl();
 
@@ -35,7 +35,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .data(pool.clone())
             .wrap(
-                CookieSession::private(&secret_key)
+                CookieSession::private(&rand::thread_rng().gen::<[u8; 32]>())
                     .name("auth")
                     .secure(false),
             )
