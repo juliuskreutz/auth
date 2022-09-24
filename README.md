@@ -1,3 +1,3 @@
 # auth
 
-https://julius-kreutz.de:8443/
+https://kreutz.dev:8443/
